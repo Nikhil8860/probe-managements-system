@@ -1,2 +1,29 @@
+# Remove pycharm setting
+.idea/
+
+# Logs
+*.log
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# distribution / Packaging
+dist/
+downloads/
+lib/
+lib64/
+parts/
+
+# Unit test / coverage reports
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.coverage.*
 .pytest_cache
-app.log
+
+# Environments
+.env
+pms/
