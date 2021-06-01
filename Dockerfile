@@ -2,13 +2,19 @@ FROM python:3-alpine
 
 RUN python -m pip install --upgrade pip
 
+RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
+
+RUN apk add build-base
+
+RUN apk add alpine-sdk
+
 WORKDIR /Probe-Management-System
 
 COPY . /Probe-Management-System
 
-RUN pip install --ignore-installed six watson-developer-cloud
+COPY requirements.txt .
 
-RUN pip install Flask==1.1.2 && pip install flask_restful && pip install flask-sqlalchemy==2.3.0 && pip install psycopg2
+RUN pip install -r requirements.txt
 
 EXPOSE 5000
 
