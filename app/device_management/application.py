@@ -13,7 +13,7 @@ schema_search = SearchSchema()
 
 
 # @application_api.resource('/')
-class DeviceManagementEngine(Resource, object):
+class DeviceManagementEngine(Resource):
     def get(self):
         #  here we will get last 24 hr data by default
         device_data = DeviceManagement.query.all()

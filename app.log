@@ -1,3 +1,62 @@
 werkzeug - WARNING -  * Debugger is active!
 werkzeug - INFO -  * Debugger PIN: 162-504-232
 werkzeug - INFO -  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:27:19] "[37mOPTIONS /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - select version()
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - SELECT performance_analysis.id AS performance_analysis_id, performance_analysis.start_date AS performance_analysis_start_date, performance_analysis.end_date AS performance_analysis_end_date, performance_analysis.region AS performance_analysis_region, performance_analysis.site_name AS performance_analysis_site_name, performance_analysis.probe AS performance_analysis_probe, performance_analysis.app_type AS performance_analysis_app_type, performance_analysis.timestamp AS performance_analysis_timestamp 
+FROM performance_analysis 
+WHERE performance_analysis.probe = %(probe_1)s 
+ LIMIT %(param_1)s
+sqlalchemy.engine.Engine - INFO - SELECT performance_analysis.id AS performance_analysis_id, performance_analysis.start_date AS performance_analysis_start_date, performance_analysis.end_date AS performance_analysis_end_date, performance_analysis.region AS performance_analysis_region, performance_analysis.site_name AS performance_analysis_site_name, performance_analysis.probe AS performance_analysis_probe, performance_analysis.app_type AS performance_analysis_app_type, performance_analysis.timestamp AS performance_analysis_timestamp 
+FROM performance_analysis
+sqlalchemy.engine.Engine - INFO - [generated in 0.00164s] {'probe_1': 'ASSASASSASA', 'param_1': 1}
+sqlalchemy.engine.Engine - INFO - [generated in 0.02183s] {}
+sqlalchemy.engine.Engine - INFO - select current_schema()
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:27:20] "[37mPOST /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:27:20] "[37mGET /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT device_management.id AS device_management_id, device_management.probe_name AS device_management_probe_name, device_management.region AS device_management_region, device_management.site_name AS device_management_site_name, device_management.mobile_technology AS device_management_mobile_technology, device_management.mobile_model AS device_management_mobile_model, device_management.cordinates AS device_management_cordinates, device_management.date_of_installation AS device_management_date_of_installation, device_management.device_id AS device_management_device_id, device_management.mobile_number AS device_management_mobile_number, device_management.mobile_os AS device_management_mobile_os, device_management.current_version AS device_management_current_version, device_management.update AS device_management_update, device_management.remote_management AS device_management_remote_management, device_management.timestamp AS device_management_timestamp 
+FROM device_management
+sqlalchemy.engine.Engine - INFO - [generated in 0.01452s] {}
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:27:20] "[37mGET /pms/dm/application HTTP/1.1[0m" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:46] "[37mOPTIONS /pms/pa/performance-analysis-application/application?id=27 HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT performance_analysis.id AS performance_analysis_id, performance_analysis.start_date AS performance_analysis_start_date, performance_analysis.end_date AS performance_analysis_end_date, performance_analysis.region AS performance_analysis_region, performance_analysis.site_name AS performance_analysis_site_name, performance_analysis.probe AS performance_analysis_probe, performance_analysis.app_type AS performance_analysis_app_type, performance_analysis.timestamp AS performance_analysis_timestamp 
+FROM performance_analysis 
+WHERE performance_analysis.id = %(id_1)s 
+ LIMIT %(param_1)s
+sqlalchemy.engine.Engine - INFO - [generated in 0.09561s] {'id_1': '27', 'param_1': 1}
+sqlalchemy.engine.Engine - INFO - DELETE FROM performance_analysis WHERE performance_analysis.id = %(id)s
+sqlalchemy.engine.Engine - INFO - [generated in 0.00567s] {'id': 27}
+sqlalchemy.engine.Engine - INFO - COMMIT
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:46] "[37mDELETE /pms/pa/performance-analysis-application/application?id=27 HTTP/1.1[0m" 202 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:52] "[37mOPTIONS /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT performance_analysis.id AS performance_analysis_id, performance_analysis.start_date AS performance_analysis_start_date, performance_analysis.end_date AS performance_analysis_end_date, performance_analysis.region AS performance_analysis_region, performance_analysis.site_name AS performance_analysis_site_name, performance_analysis.probe AS performance_analysis_probe, performance_analysis.app_type AS performance_analysis_app_type, performance_analysis.timestamp AS performance_analysis_timestamp 
+FROM performance_analysis 
+WHERE performance_analysis.probe = %(probe_1)s 
+ LIMIT %(param_1)s
+sqlalchemy.engine.Engine - INFO - [cached since 92.25s ago] {'probe_1': 'ASSASASSASA', 'param_1': 1}
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:52] "[37mPOST /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT performance_analysis.id AS performance_analysis_id, performance_analysis.start_date AS performance_analysis_start_date, performance_analysis.end_date AS performance_analysis_end_date, performance_analysis.region AS performance_analysis_region, performance_analysis.site_name AS performance_analysis_site_name, performance_analysis.probe AS performance_analysis_probe, performance_analysis.app_type AS performance_analysis_app_type, performance_analysis.timestamp AS performance_analysis_timestamp 
+FROM performance_analysis
+sqlalchemy.engine.Engine - INFO - [cached since 92.65s ago] {}
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:53] "[37mGET /pms/pa/performance-analysis-application/application HTTP/1.1[0m" 200 -
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT device_management.id AS device_management_id, device_management.probe_name AS device_management_probe_name, device_management.region AS device_management_region, device_management.site_name AS device_management_site_name, device_management.mobile_technology AS device_management_mobile_technology, device_management.mobile_model AS device_management_mobile_model, device_management.cordinates AS device_management_cordinates, device_management.date_of_installation AS device_management_date_of_installation, device_management.device_id AS device_management_device_id, device_management.mobile_number AS device_management_mobile_number, device_management.mobile_os AS device_management_mobile_os, device_management.current_version AS device_management_current_version, device_management.update AS device_management_update, device_management.remote_management AS device_management_remote_management, device_management.timestamp AS device_management_timestamp 
+FROM device_management
+sqlalchemy.engine.Engine - INFO - [cached since 92.74s ago] {}
+sqlalchemy.engine.Engine - INFO - ROLLBACK
+werkzeug - INFO - 127.0.0.1 - - [01/Jun/2021 13:28:53] "[37mGET /pms/dm/application HTTP/1.1[0m" 200 -
