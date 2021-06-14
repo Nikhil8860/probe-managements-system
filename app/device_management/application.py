@@ -1,41 +1,60 @@
+import os
+import datetime
 from flask_restful import Resource, Api
-from flask import request, make_response, jsonify, abort
+from flask import request, make_response, jsonify, abort, current_app
 from . import application
 from app import logging
-from models import PerformanceAnalysis, PerformanceAnalysisSchema, DeviceManagement, DeviceManagementSchema
-from validation import BarQuerySchema, SearchSchema
+from models.device_management import device_model
+from validation import (BarQuerySchema, SearchSchema, SearchSchemaDeviceManagement, SearchKey, ValidateRemoteAccess)
 from db_config import db
+import json
+from sqlalchemy import or_, func
+from check_update import remote_access, version_update
 
 application_api = Api(application)
 
 schema = BarQuerySchema()
 schema_search = SearchSchema()
+SearchSchemaDeviceManagement = SearchSchemaDeviceManagement()
+search_key_schema = SearchKey()
+validate_remote_access_schema = ValidateRemoteAccess()
 
 
 # @application_api.resource('/')
 class DeviceManagementEngine(Resource):
     def get(self):
+        time_24_hr_ago = (datetime.datetime.now() - datetime.timedelta(days=1)).date().strftime('%Y-%m-%d')
         #  here we will get last 24 hr data by default
-        device_data = DeviceManagement.query.all()
+        id = request.args.get('id')
+        if id:
+            device_data = device_model.DeviceManagement.query.filter_by(id=id, timestamp=datetime.datetime.now().date())
+        else:
+            # device_data = device_model.DesviceManagement.query.all()
+            device_data = device_model.DeviceManagement.query.filter(
+                func.Date(device_model.DeviceManagement.timestamp) == time_24_hr_ago)
         # Serialize the data for the response
-        device_management_schema = DeviceManagementSchema(many=True)
+        device_management_schema = device_model.DeviceManagementSchema(many=True)
         result = device_management_schema.dump(device_data)
         print(result)
-        if not result:
-            return jsonify({'msg': 'No record Found'})
-        logging.info("Result")
-        logging.info(result)
-        # return make_response(jsonify({"data": result}, 200))
-        return jsonify(result)
+        current_app.logger.info("Result")
+        current_app.logger.info(result)
+        if result:
+            return make_response({"status": True, "data": result})
+        else:
+            return make_response({"status": False, "data": []})
 
     def post(self):
         return make_response(jsonify({"msg": "POSt"}))
 
     def put(self):
+        # open command promp only and leave it
+        errors = SearchSchemaDeviceManagement.validate(request.json)
+        if errors:
+            abort(400, str(errors))
         id = request.json['id']
         logging.info("Id")
         logging.info(id)
-        rec = DeviceManagement.query.filter_by(id=id).first()
+        rec = device_model.DeviceManagement.query.filter_by(id=id).first()
         if rec:
             rec.probe_name = request.json['probe_name']
             rec.region = request.json['region']
@@ -51,6 +70,11 @@ class DeviceManagementEngine(Resource):
             rec.update = request.json['update']
             rec.remote_management = request.json['remote_management']
             db.session.commit()
+            rec = device_model.DeviceManagement.query.filter_by(id=id)
+            device_management_schema = device_model.DeviceManagementSchema(many=True)
+            result = device_management_schema.dump(rec)
+            with open('./resources/probe.json', 'w') as f:
+                f.write(json.dumps(result, indent=4))
             return make_response({"msg": "Record has been updated"}, 202)
         else:
             return make_response({"msg": "Record does not exist"}, 404)
@@ -61,22 +85,37 @@ class DeviceManagementUpdate(Resource):
         return {"msg": "Success"}
 
     def put(self):
-        id = request.json['id']
+        id = request.form['id']
         logging.info("Id")
         logging.info(id)
-        rec = DeviceManagement.query.filter_by(id=id).first()
+        errors = validate_remote_access_schema.validate(request.form)
+        if errors:
+            abort(400, str(errors))
+        ip = request.form['ip']
+        if request.form['port']:
+            port = request.form['port']
+        else:
+            port = 6022
+        user_name = request.form['user_name']
+        password = request.form['password']
+        print(ip, port, user_name, password)
+        cmd = version_update.get_user_name_password(ip, port, user_name, password)
+        os.system(cmd)
+        rec = device_model.DeviceManagement.query.filter_by(id=id).first()
         current_version = float(rec.current_version)
         present_version = float(rec.update.split()[-1])
+
         if current_version < present_version:
-            print("Run the ssh command and check for new update")
-            if rec:
-                rec.update = request.json['update']
-                db.session.commit()
-                return make_response({"msg": "Record has been updated"}, 202)
-            else:
-                return make_response({"msg": "Record does not exist"}, 404)
-        else:
-            pass
+            return make_response({"status": True, "msg": cmd}, 202)
+        #     print("Run the ssh command and check for new update")
+        #     if rec:
+        #         rec.update = request.json['update']
+        #         db.session.commit()
+        #         return make_response({"msg": "Record has been updated"}, 202)
+        #     else:
+        #         return make_response({"msg": "Record does not exist"}, 404)
+        # else:
+        #     pass
 
 
 class DeviceManagementRemoteAccessApi(Resource):
@@ -87,54 +126,55 @@ class DeviceManagementRemoteAccessApi(Resource):
             abort(400, str(errors))
 
         id = request.args.get('id')
-        rec = DeviceManagement.query.filter_by(id=id)
-        device_management_schema = DeviceManagementSchema(many=True)
+        rec = device_model.DeviceManagement.query.filter_by(id=id)
+        device_management_schema = device_model.DeviceManagementSchema(many=True)
         result = device_management_schema.dump(rec)
         if result:
             return make_response({"status": True, "data": result})
         else:
             return make_response({"status": False, "data": []})
 
+    def post(self):
+        # This will open command CLI after ssh login
+        errors = validate_remote_access_schema.validate(request.form)
+        if errors:
+            abort(400, str(errors))
+        ip = request.form['ip']
+        if request.form['port']:
+            port = request.form['port']
+        else:
+            port = 6022
+        user_name = request.form['user_name']
+        password = request.form['password']
+        print(ip, port, user_name, password)
+        cmd = remote_access.get_user_name_password(ip, port, user_name, password)
+        os.system(cmd)
+        return make_response({"status": True, "cmd": cmd})
+
 
 class SearchApi(Resource):
 
     def get(self):
-        global query_dict
-        errors = schema_search.validate(request.args)
+        errors = search_key_schema.validate(request.args)
         if errors:
             abort(400, str(errors))
-
-        device_management_type = request.args.get('type')
-        probe = request.args.get('probe')
-        region = request.args.get('region')
-        site_name = request.args.get('site_name')
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-
-        if probe and region and site_name and start_date and end_date:
-            query_dict = {"probe": probe, "region": region, "site_name": site_name, "start_date": start_date,
-                          "end_date": end_date, "app_type": device_management_type}
-
-        if probe and region and site_name:
-            query_dict = {"probe": probe, "region": region, "site_name": site_name, "app_type": device_management_type}
-
-        if probe and region:
-            query_dict = {"probe": probe, "region": region, "app_type": device_management_type}
-
-        if probe:
-            query_dict = {"probe": probe, "app_type": device_management_type}
-
-        if probe and site_name:
-            query_dict = {"probe": probe, "site_name": site_name, "app_type": device_management_type}
-
-        results = PerformanceAnalysis.query.filter_by(**query_dict).all()
-        device_management_schema = PerformanceAnalysisSchema(many=True)
+        search_key = request.args.get('q')
+        results = device_model.DeviceManagement.query.filter(or_(device_model.DeviceManagement.update == search_key,
+                                                                 device_model.DeviceManagement.region == search_key,
+                                                                 device_model.DeviceManagement.device_id == search_key,
+                                                                 device_model.DeviceManagement.remote_management == search_key,
+                                                                 device_model.DeviceManagement.current_version == search_key,
+                                                                 device_model.DeviceManagement.site_name == search_key,
+                                                                 device_model.DeviceManagement.probe_name == search_key,
+                                                                 device_model.DeviceManagement.mobile_os == search_key,
+                                                                 device_model.DeviceManagement.mobile_model == search_key,
+                                                                 device_model.DeviceManagement.mobile_number == search_key,
+                                                                 device_model.DeviceManagement.mobile_technology == search_key,
+                                                                 device_model.DeviceManagement.cordinates == search_key))
+        device_management_schema = device_model.DeviceManagementSchema(many=True)
         result = device_management_schema.dump(results)
 
         if result:
             return {"status": True, "msg": result}
         else:
             return {"status": False, "msg": "No Data Found"}
-
-# application_api.add_resource(DeviceManagementEngine, '/application')
-# application_api.add_resource(SearchApi, '/search')

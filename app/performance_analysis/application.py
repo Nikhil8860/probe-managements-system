@@ -1,13 +1,14 @@
 from flask_restful import Resource
 from flask import request, make_response, abort, jsonify
 from db_config import db
-from validation import BarQuerySchema, SearchSchema
-from models import PerformanceAnalysis, PerformanceAnalysisSchema
+from validation import BarQuerySchema, SearchSchema, SearchProbe
+from models.performance_analysis import performance_model
 from app import logging
 import datetime
 
 schema = BarQuerySchema()
 schema_search = SearchSchema()
+search_probe = SearchProbe()
 
 
 class PaEngine(Resource):
@@ -62,8 +63,8 @@ class SearchApiApplication(Resource):
             pass
 
         print(self.query_dict)
-        results = PerformanceAnalysis.query.filter_by(**self.query_dict).all()
-        performance_analysis = PerformanceAnalysisSchema(many=True)
+        results = performance_model.PerformanceAnalysis.query.filter_by(**self.query_dict).all()
+        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
         result = performance_analysis.dump(results)
 
         if result:
@@ -74,7 +75,7 @@ class SearchApiApplication(Resource):
     def post(self):
         probe = request.json['probe']
         logging.info("Probe from request" + str(probe))
-        test = PerformanceAnalysis.query.filter_by(probe=probe).first()
+        test = performance_model.PerformanceAnalysis.query.filter_by(probe=probe).first()
         if test:
             return make_response(jsonify({'msg': "Result already exists"}, 409))
         else:
@@ -84,7 +85,7 @@ class SearchApiApplication(Resource):
             site_name = request.json['site_name']
             probe = request.json['probe']
             app_type = request.json['app_type']
-            p = PerformanceAnalysis(start_date=start_date, end_date=end_date, region=region, site_name=site_name,
+            p = performance_model.PerformanceAnalysis(start_date=start_date, end_date=end_date, region=region, site_name=site_name,
                                     probe=probe, app_type=app_type)
             db.session.add(p)
             db.session.commit()
@@ -92,7 +93,7 @@ class SearchApiApplication(Resource):
 
     def delete(self):
         id = request.args.get('id')
-        rec = PerformanceAnalysis.query.filter_by(id=id).first()
+        rec = performance_model.PerformanceAnalysis.query.filter_by(id=id).first()
         if rec:
             db.session.delete(rec)
             db.session.commit()
@@ -112,6 +113,21 @@ class SearchApiWebService(SearchApiApplication):
         super(SearchApiWebService, self).__init__()
         self.device_management_type = request.args.get('type')
         print(self.device_management_type)
+
+
+class SearchApiProbe(Resource):
+    def get(self):
+        errors = search_probe.validate(request.args)
+        if errors:
+            abort(400, str(errors))
+        probe_name = request.args.get('probe')
+        results = performance_model.PerformanceAnalysis.query.filter_by(probe=probe_name).all()
+        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
+        result = performance_analysis.dump(results)
+        if result:
+            return make_response({"status": True, "data": result})
+        else:
+            return make_response({"status": False, "data": "No Data Found"})
 
 # pa_api.add_resource(PaEngine, '/')
 # pa_api.add_resource(SearchApiApplication, '/performance-analysis-application/application')

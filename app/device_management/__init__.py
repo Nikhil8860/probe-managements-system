@@ -1,8 +1,7 @@
 from flask import Blueprint
-from flask_restful import Api
 
 application = Blueprint("dm_view", __name__, url_prefix="/pms/dm/")
-application_api = Api(application)
+
 from .application import *
 
 application_api.add_resource(DeviceManagementEngine, '/application')
