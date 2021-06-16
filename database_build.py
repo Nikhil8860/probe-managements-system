@@ -1,7 +1,10 @@
 import os
 from db_config import db
-from models import PerformanceAnalysis, DeviceManagement
+from models.fault_management import fault_model
+from models.performance_analysis import performance_model
+from models.device_management import device_model
 from datetime import datetime, timedelta
+
 
 start_date = datetime.now() - timedelta(days=7)
 start_date = datetime.strptime(start_date.strftime('%d/%m/%Y'), '%d/%m/%Y').date()
@@ -41,14 +44,14 @@ PMS = [
 
 # Create the database
 db.create_all()
-
 # iterate over the PEOPLE structure and populate the database
-# for site in PMS:
-#     p = PerformanceAnalysis(start_date=site.get("start_date"), end_date=site.get("end_date"), region=site.get('region'),
-#                             site_name=site.get('site_name'), probe=site.get('probe'), app_type=site.get('app_type'))
-#     db.session.add(p)
-# 
-# db.session.commit()
+for site in PMS:
+    p = performance_model.PerformanceAnalysis(start_date=site.get("start_date"), end_date=site.get("end_date"), region=site.get('region'),
+                                              site_name=site.get('site_name'), probe=site.get('probe'),
+                                              app_type=site.get('app_type'))
+    db.session.add(p)
+
+db.session.commit()
 
 
 dm_data = PMS = [
@@ -95,19 +98,48 @@ dm_data = PMS = [
 ]
 
 for site in dm_data:
-    p = DeviceManagement(probe_name=site.get("probe_name"), region=site.get("region"),
-                         site_name=site.get('site_name'),
-                         mobile_technology=site.get('mobile_technology'),
-                         mobile_model=site.get('mobile_model'),
-                         cordinates=site.get('cordinates'),
-                         date_of_installation=site.get('date_of_installation'),
-                         device_id=site.get('device_id'),
-                         mobile_number=site.get('mobile_number'),
-                         mobile_os=site.get('mobile_os'),
-                         current_version=site.get('current_version'),
-                         update=site.get('update'),
-                         remote_management=site.get('remote_management'),
-                         )
+    p = device_model.DeviceManagement(probe_name=site.get("probe_name"), region=site.get("region"),
+                                      site_name=site.get('site_name'),
+                                      mobile_technology=site.get('mobile_technology'),
+                                      mobile_model=site.get('mobile_model'),
+                                      cordinates=site.get('cordinates'),
+                                      date_of_installation=site.get('date_of_installation'),
+                                      device_id=site.get('device_id'),
+                                      mobile_number=site.get('mobile_number'),
+                                      mobile_os=site.get('mobile_os'),
+                                      current_version=site.get('current_version'),
+                                      update=site.get('update'),
+                                      remote_management=site.get('remote_management'),
+                                      )
     db.session.add(p)
 
 db.session.commit()
+
+
+fault_data = [
+    {'time': start_date, 'probe_id': 1234, 'region': "Dubai", 'site_name': "XXX pavallion",
+     "ip": "192.168.1.17", "fault_description": "power supply faliur", 'current_version': "2.0", 'status': "active",
+     'ack_by': "Nikhil", "ack_time": end_date},
+    {'time': start_date, 'probe_id': 1234, 'region': "Dubai", 'site_name': "XXX pavallion",
+     "ip": "192.168.1.17", "fault_description": "power supply faliur", 'current_version': "2.0", 'status': "active",
+     'ack_by': "Nikhil", "ack_time": end_date},
+    {'time': start_date, 'probe_id': 1234, 'region': "Dubai", 'site_name': "XXX pavallion",
+     "ip": "192.168.1.17", "fault_description": "power supply faliur", 'current_version': "2.0", 'status': "active",
+     'ack_by': "Nikhil", "ack_time": end_date},
+    {'time': start_date, 'probe_id': 1234, 'region': "Dubai", 'site_name': "XXX pavallion",
+     "ip": "192.168.1.17", "fault_description": "power supply faliur", 'current_version': "2.0", 'status': "active",
+     'ack_by': "Nikhil", "ack_time": end_date},
+    {'time': start_date, 'probe_id': 1234, 'region': "Dubai", 'site_name': "XXX pavallion",
+     "ip": "192.168.1.17", "fault_description": "power supply faliur", 'current_version': "2.0", 'status': "active",
+     'ack_by': "Nikhil", "ack_time": end_date}
+]
+
+for site in fault_data:
+    p = fault_model.FaultManagement(time=site.get("time"), probe_id=site.get("probe_id"), region=site.get('region'),
+                                     site_name=site.get('site_name'), ip=site.get('ip'),
+                                     fault_description=site.get('fault_description'),
+                                     current_version=site.get('current_version'), status=site.get('status'),
+                                     ack_by=site.get('ack_by'), ack_time=site.get('ack_time'))
+    db.session.add(p)
+
+    db.session.commit()

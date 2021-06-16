@@ -1,0 +1,3 @@
+cd /tmp && ls;
+sudo apt-get update;
+ls -lrth;

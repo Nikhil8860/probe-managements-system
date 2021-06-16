@@ -5,7 +5,7 @@ from validation import BarQuerySchema, SearchSchema, SearchProbe
 from models.performance_analysis import performance_model
 from app import logging
 import datetime
-
+from sqlalchemy import func
 schema = BarQuerySchema()
 schema_search = SearchSchema()
 search_probe = SearchProbe()
@@ -47,8 +47,10 @@ class SearchApiApplication(Resource):
         self.start_date = request.args.get('start_date')
         self.end_date = request.args.get('end_date')
         self.query_dict = dict()
+        self.result = None
 
     def get(self):
+
         errors = schema_search.validate(request.args)
         if errors:
             abort(400, str(errors))
@@ -63,14 +65,21 @@ class SearchApiApplication(Resource):
             pass
 
         print(self.query_dict)
-        results = performance_model.PerformanceAnalysis.query.filter_by(**self.query_dict).all()
-        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
-        result = performance_analysis.dump(results)
-
-        if result:
-            return {"status": True, "data": result}
+        if len(self.query_dict) == 0:
+            time_24_hr_ago = (datetime.datetime.now() - datetime.timedelta(days=1)).date().strftime('%Y-%m-%d')
+            results = performance_model.PerformanceAnalysis.query.filter(
+                func.Date(performance_model.PerformanceAnalysis.timestamp) == time_24_hr_ago)
+            # results = performance_model.PerformanceAnalysis.query.all()
         else:
-            return {"status": False, "data": "No Data Found"}
+            results = performance_model.PerformanceAnalysis.query.filter_by(**self.query_dict).all()
+
+        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
+        self.result = performance_analysis.dump(results)
+
+        if self.result:
+            return {"status": True, "data": self.result}
+        else:
+            return {"status": False, "data": []}
 
     def post(self):
         probe = request.json['probe']

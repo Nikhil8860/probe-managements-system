@@ -27,9 +27,9 @@ class DeviceManagementEngine(Resource):
         #  here we will get last 24 hr data by default
         id = request.args.get('id')
         if id:
-            device_data = device_model.DeviceManagement.query.filter_by(id=id, timestamp=datetime.datetime.now().date())
+            device_data = device_model.DeviceManagement.query.filter_by(id=id, timestamp=datetime.datetime.now().date().strftime('%Y-%m-%d'))
         else:
-            # device_data = device_model.DesviceManagement.query.all()
+            # device_data = device_model.DeviceManagement.query.all()
             device_data = device_model.DeviceManagement.query.filter(
                 func.Date(device_model.DeviceManagement.timestamp) == time_24_hr_ago)
         # Serialize the data for the response

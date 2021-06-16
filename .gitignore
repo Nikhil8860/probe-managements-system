@@ -1,6 +1,9 @@
 # Remove pycharm setting
 .idea/
 
+# Remove vscode setting
+.vscode/
+
 # Logs
 *.log
 

@@ -14,5 +14,5 @@ import os
 # os.system("gnome-terminal -e 'bash -c \"ssh evanik@192.168.1.17 exec bash\"'")
 # os.system("gnome-terminal --window --title=Log -e 'ssh evanik@192.168.1.17'")
 # p = subprocess.call(["gnome-terminal", "--", "python3", "server_login_paramiko.py"])
-os.system("gnome-terminal --tab -- sshpass -p evanik ssh -o StrictHostKeyChecking=no evanik@192.168.1.17")
-os.system("gnome-terminal -e 'bash -c \"sudo apt-get update; exec bash\"'")
+os.system('gnome-terminal -- bash -c "sshpass -p user@123 ssh user@10.0.2.15 read line;"')
+# os.system("gnome-terminal -e 'bash -c \"sudo apt-get update; exec bash\"'")
