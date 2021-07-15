@@ -1,0 +1,11 @@
+[33mcommit a1996008f21724ed0eab5e80a0b807b8f3b68d58[m
+Author: Nikhil <sharmanikhil8287@gmail.com>
+Date:   Mon Jun 14 10:43:34 2021 +0530
+
+    added last 24 default data in device management api and changes in the DB import
+
+[33mcommit a5786dcda60b46b18b361ab65a8db5b279a3b986[m
+Author: Nikhil Sharma <sharmanikhil8287@gmail.com>
+Date:   Tue Jun 1 07:25:09 2021 +0530
+
+    Initial commit

@@ -1,19 +1,19 @@
 [
     {
-        "update": "update to 2.3",
-        "cordinates": "1,2",
+        "mobile_number": "9876789878",
         "remote_management": "Remote Access",
-        "site_name": "xxx Pavalion",
-        "probe_name": "AUH",
-        "region": "Dubai",
-        "mobile_model": "samsung guru",
-        "device_id": "De7sadjsf82",
-        "mobile_number": "935763457345",
+        "mobile_os": "IOS",
+        "update": "Update to 5.0",
+        "cordinates": "1321424242.5242423",
+        "region": "NORTH",
+        "mobile_model": "Iphone",
+        "date_of_installation": "2021-07-22T00:00:00",
         "id": 1,
-        "mobile_technology": "Andriod",
-        "mobile_os": "935763457345",
-        "current_version": "2.0",
-        "date_of_installation": "2021-06-12T00:00:00",
-        "timestamp": "2021-06-14T04:27:51.253711"
+        "mobile_technology": "4G",
+        "current_version": "IOS",
+        "device_id": "QWERTYUIOP",
+        "timestamp": "2021-07-13T14:49:40.358644",
+        "probe_name": "FACEBOOK",
+        "site_name": "Mall of Emirates"
     }
 ]

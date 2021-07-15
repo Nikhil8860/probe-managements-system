@@ -1,3 +1,6 @@
-cd /tmp && ls;
-sudo apt-get update;
-ls -lrth;
+Version 2.2
+
+apt-get update
+curl -Ok https:/217.165.208.115/eprobe-3.0.deb
+//dpkg --remove eprobe
+//dpkg -i eprobe-3.0.deb

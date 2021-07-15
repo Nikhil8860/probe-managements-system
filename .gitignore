@@ -31,3 +31,9 @@ htmlcov/
 # Environments
 .env
 pms/
+
+# test file
+db.ini
+ddd.py
+demo.py
+demo1.py

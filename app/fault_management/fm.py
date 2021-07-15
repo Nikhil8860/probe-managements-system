@@ -1,9 +1,7 @@
-from re import I
 from flask_restful import Api, Resource
 from flask import jsonify, current_app, make_response, abort, request
 import logging
 from . import fm
-from models.fault_management import fault_model
 from device_health import cpu_memory_stastics_alert
 from validation import BarQuerySchema
 from models.fault_management import fault_model

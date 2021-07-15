@@ -2,8 +2,10 @@
 # into the command prompt of CLI
 import os
 
-f = open('resources/device_management/cmd.txt', 'r')
-cmd_list = "".join([i.replace('\n', '') for i in f.readlines()])
+f = open('./resources/device_management/cmd.txt', 'r')
+cmd_list = ";".join([i.replace('\n', '') for i in f.readlines()])
+version = float(cmd_list.split(";;")[0].split()[-1])
+cmd_list = "".join(cmd_list.split(";;")[1:])
 
 
 def get_user_name_password(ip_address, port, user_name, password):
@@ -16,8 +18,7 @@ def get_user_name_password(ip_address, port, user_name, password):
     :return: for now return same command
     """
     cmd = f'gnome-terminal -- bash -c "sshpass -p {password} ssh {user_name}@{ip_address} echo Processing start; {cmd_list} echo processing end ;read line"'
-    print(cmd)
-    return cmd
+    return cmd, version
 
 
 if __name__ == '__main__':

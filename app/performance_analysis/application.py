@@ -3,9 +3,14 @@ from flask import request, make_response, abort, jsonify
 from db_config import db
 from validation import BarQuerySchema, SearchSchema, SearchProbe
 from models.performance_analysis import performance_model
+from models.networks import network_model
+from models.webservices import web_service_model
 from app import logging
 import datetime
 from sqlalchemy import func
+from lookup_data.mapper import urls
+import requests
+
 schema = BarQuerySchema()
 schema_search = SearchSchema()
 search_probe = SearchProbe()
@@ -50,34 +55,46 @@ class SearchApiApplication(Resource):
         self.result = None
 
     def get(self):
-
+        dynamic_query = ""
         errors = schema_search.validate(request.args)
         if errors:
             abort(400, str(errors))
         if not self.probe and not self.site_name and not self.start_date and not self.end_date:
-            # self.query_dict = {"app_type": self.device_management_type}
-            self.query_dict = {}
+            url = urls[self.device_management_type.lower()]
+            self.result = requests.get(url).json()
         if self.probe and self.region and self.site_name and self.start_date and self.end_date and self.device_management_type:
+            self.start_date = datetime.datetime.strptime(self.start_date, '%Y-%m-%d')
+            self.end_date = datetime.datetime.strptime(self.end_date, '%Y-%m-%d')
+            diff = self.end_date - self.start_date
+            days, seconds = diff.days, diff.seconds
+            hours = days * 24 + seconds // 3600
+            minutes = (seconds % 3600) // 60
+            seconds = seconds % 60
+            print(hours)
             self.query_dict = {"probe": self.probe, "region": self.region, "site_name": self.site_name,
                                "start_date": self.start_date,
                                "end_date": self.end_date, "app_type": self.device_management_type}
-        else:
-            pass
+            url = urls[self.device_management_type.lower()].replace("time > now() - 24h", "time > now() - {}h").format(
+                hours)
 
-        print(self.query_dict)
-        if len(self.query_dict) == 0:
-            time_24_hr_ago = (datetime.datetime.now() - datetime.timedelta(days=1)).date().strftime('%Y-%m-%d')
-            results = performance_model.PerformanceAnalysis.query.filter(
-                func.Date(performance_model.PerformanceAnalysis.timestamp) == time_24_hr_ago)
-            # results = performance_model.PerformanceAnalysis.query.all()
-        else:
-            results = performance_model.PerformanceAnalysis.query.filter_by(**self.query_dict).all()
+            dynamic_query += f" AND SiteName='{self.site_name}' AND Region='{self.region}'"
+            print(url + dynamic_query)
+            self.result = requests.get(url + dynamic_query).json()
 
-        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
-        self.result = performance_analysis.dump(results)
+        # print(self.query_dict)
+        # if len(self.query_dict) == 0:
+        #     time_24_hr_ago = (datetime.datetime.now() - datetime.timedelta(days=1)).date().strftime('%Y-%m-%d')
+        #     results = performance_model.PerformanceAnalysis.query.filter(
+        #         func.Date(performance_model.PerformanceAnalysis.timestamp) == time_24_hr_ago)
+        #     # results = performance_model.PerformanceAnalysis.query.all()
+        # else:
+        #     results = performance_model.PerformanceAnalysis.query.filter_by(**self.query_dict).all()
+        #
+        # performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
+        # self.result = performance_analysis.dump(results)
 
         if self.result:
-            return {"status": True, "data": self.result}
+            return self.result
         else:
             return {"status": False, "data": []}
 
@@ -94,8 +111,9 @@ class SearchApiApplication(Resource):
             site_name = request.json['site_name']
             probe = request.json['probe']
             app_type = request.json['app_type']
-            p = performance_model.PerformanceAnalysis(start_date=start_date, end_date=end_date, region=region, site_name=site_name,
-                                    probe=probe, app_type=app_type)
+            p = performance_model.PerformanceAnalysis(start_date=start_date, end_date=end_date, region=region,
+                                                      site_name=site_name,
+                                                      probe=probe, app_type=app_type)
             db.session.add(p)
             db.session.commit()
             return make_response({"msg": "Data has been Inserted"}, 201)
@@ -129,14 +147,56 @@ class SearchApiProbe(Resource):
         errors = search_probe.validate(request.args)
         if errors:
             abort(400, str(errors))
-        probe_name = request.args.get('probe')
-        results = performance_model.PerformanceAnalysis.query.filter_by(probe=probe_name).all()
-        performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
-        result = performance_analysis.dump(results)
+        probe_name = request.args.get('probe', None)
+        if probe_name:
+            data = requests.get(urls[probe_name.lower()])
+        #     print(data.json())
+        # print(probe_name)
+        # results = performance_model.PerformanceAnalysis.query.filter_by(probe=probe_name).all()
+        # performance_analysis = performance_model.PerformanceAnalysisSchema(many=True)
+        # result = performance_analysis.dump(results)
+        # if result:
+        #     return make_response({"status": True, "data": result})
+        # else:
+        #     return make_response({"status": False, "data": "No Data Found"})
+        return make_response(data.json())
+
+
+class GetProbe(Resource):
+    def get(self):
+        data = performance_model.Applications.query.all()
+        performance_analysis = performance_model.ApplicationSchema(many=True)
+        result = performance_analysis.dump(data)
+        result = [i['application_name'] for i in result]
         if result:
-            return make_response({"status": True, "data": result})
+            return {"status": True, "data": result}
         else:
-            return make_response({"status": False, "data": "No Data Found"})
+            return {"status": False, "data": []}
+
+
+class GetNetwork(Resource):
+    def get(self):
+        print("HELLO")
+        data = network_model.Network.query.all()
+        network_analysis = network_model.NetworkSchema(many=True)
+        result = network_analysis.dump(data)
+        result = list(set([i['network_name'] for i in result]))
+        if result:
+            return {"status": True, "data": result}
+        else:
+            return {"status": False, "data": []}
+
+
+class GetWebServices(Resource):
+    def get(self):
+        data = web_service_model.WebService.query.all()
+        web_service_data = web_service_model.WebServiceSchema(many=True)
+        result = web_service_data.dump(data)
+        result = list(set([i['url_name'] for i in result]))
+        if result:
+            return {"status": True, "data": result}
+        else:
+            return {"status": False, "data": []}
 
 # pa_api.add_resource(PaEngine, '/')
 # pa_api.add_resource(SearchApiApplication, '/performance-analysis-application/application')

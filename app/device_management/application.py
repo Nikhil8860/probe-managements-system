@@ -1,7 +1,8 @@
 import os
+import platform
 import datetime
 from flask_restful import Resource, Api
-from flask import request, make_response, jsonify, abort, current_app
+from flask import request, make_response, jsonify, abort, current_app, redirect
 from . import application
 from app import logging
 from models.device_management import device_model
@@ -20,6 +21,26 @@ search_key_schema = SearchKey()
 validate_remote_access_schema = ValidateRemoteAccess()
 
 
+class OpenTerminal(Resource):
+    def get(self):
+        os.system("start cmd")
+        # os.popen("Start cmd cd ../")
+        # command = ["python", "mytool.py", "-a", servers[server]['address'],
+        #            "-x", servers[server]['port'],
+        #            "-p", servers[server]['pass'],
+        #            "some", "additional", "command"]
+        command = ["dir"]
+        # p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        # p1 = subprocess.Popen('dir', shell=True, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # p2 = subprocess.Popen('sort /R', shell=True, stdin=p1.stdout)
+        #
+        # p1.stdout.close()
+        # out, err = p2.communicate()
+        # print(out)
+        # print(err)
+        return redirect('http://localhost:4200/')
+
+
 # @application_api.resource('/')
 class DeviceManagementEngine(Resource):
     def get(self):
@@ -27,11 +48,12 @@ class DeviceManagementEngine(Resource):
         #  here we will get last 24 hr data by default
         id = request.args.get('id')
         if id:
-            device_data = device_model.DeviceManagement.query.filter_by(id=id, timestamp=datetime.datetime.now().date().strftime('%Y-%m-%d'))
+            # device_data = device_model.DeviceManagement.query.filter_by(id=id, timestamp=datetime.datetime.now().date().strftime('%Y-%m-%d'))
+            device_data = device_model.DeviceManagement.query.filter_by(id=id)
         else:
-            # device_data = device_model.DeviceManagement.query.all()
-            device_data = device_model.DeviceManagement.query.filter(
-                func.Date(device_model.DeviceManagement.timestamp) == time_24_hr_ago)
+            device_data = device_model.DeviceManagement.query.all()
+            # device_data = device_model.DeviceManagement.query.filter(
+            #     func.Date(device_model.DeviceManagement.timestamp) == time_24_hr_ago)
         # Serialize the data for the response
         device_management_schema = device_model.DeviceManagementSchema(many=True)
         result = device_management_schema.dump(device_data)
@@ -85,28 +107,31 @@ class DeviceManagementUpdate(Resource):
         return {"msg": "Success"}
 
     def put(self):
-        id = request.form['id']
+        id = request.json['id']
+        # id = 1
         logging.info("Id")
         logging.info(id)
-        errors = validate_remote_access_schema.validate(request.form)
+        errors = validate_remote_access_schema.validate(request.json)
         if errors:
             abort(400, str(errors))
-        ip = request.form['ip']
-        if request.form['port']:
-            port = request.form['port']
+        ip = request.json['ip']
+        if request.json['port']:
+            port = request.json['port']
         else:
             port = 6022
-        user_name = request.form['user_name']
-        password = request.form['password']
-        print(ip, port, user_name, password)
-        cmd = version_update.get_user_name_password(ip, port, user_name, password)
-        os.system(cmd)
+        user_name = request.json['user_name']
+        password = request.json['password']
+        # print(ip, port, user_name, password)
+        cmd, version = version_update.get_user_name_password(ip, port, user_name, password)
         rec = device_model.DeviceManagement.query.filter_by(id=id).first()
         current_version = float(rec.current_version)
         present_version = float(rec.update.split()[-1])
 
-        if current_version < present_version:
+        if current_version < version:
+            os.system(cmd)
+            print("Hello")
             return make_response({"status": True, "msg": cmd}, 202)
+
         #     print("Run the ssh command and check for new update")
         #     if rec:
         #         rec.update = request.json['update']
@@ -120,19 +145,24 @@ class DeviceManagementUpdate(Resource):
 
 class DeviceManagementRemoteAccessApi(Resource):
     def get(self):
-        errors = schema.validate(request.args)
-        print(errors)
-        if errors:
-            abort(400, str(errors))
-
-        id = request.args.get('id')
-        rec = device_model.DeviceManagement.query.filter_by(id=id)
-        device_management_schema = device_model.DeviceManagementSchema(many=True)
-        result = device_management_schema.dump(rec)
-        if result:
-            return make_response({"status": True, "data": result})
-        else:
-            return make_response({"status": False, "data": []})
+        print(request.url)
+        if platform.system() == 'Windows':
+            os.system('start cmd /k "color a & cd ../ & dir"')
+        # errors = schema.validate(request.args)
+        # print(errors)
+        # if errors:
+        #     abort(400, str(errors))
+        #
+        # id = request.args.get('id')
+        # rec = device_model.DeviceManagement.query.filter_by(id=id)
+        # device_management_schema = device_model.DeviceManagementSchema(many=True)
+        # result = device_management_schema.dump(rec)
+        # return redirect('http://localhost:4200/')
+        return make_response({"status": True})
+        # if result:
+        #     return make_response({"status": True, "data": result})
+        # else:
+        #     return make_response({"status": False, "data": []})
 
     def post(self):
         # This will open command CLI after ssh login
